@@ -16,12 +16,18 @@ source pin, application code, dependencies, and CI policy are unchanged.
 | Alibaba OpenCodeReview | Complete file accounting, related-file grouping, relevant rules, current anchors, separate falsification of findings | Installing OCR or its runtime; claiming language instructions provide its deterministic guarantees or benchmark results |
 | OpenAI: evaluating skills | Natural requests, explicit/implicit/negative controls, traces, outcome checks before cost, repeatable comparisons | Keyword matching as a behavioral pass; paid model runs in normal CI; invented token or latency improvements |
 | OpenAI: rethinking skills and prompts | Compact root policy, selective activation, completion through repair, autonomy within authority | Model-name-specific commands or permissions; a mandatory long workflow on small changes |
+| Thariq / Anthropic: context engineering | Project-specific root guidance; review on demand; typed tool interfaces; executable expectations and grading criteria as references | Repeated recipes across instruction surfaces; blind deletion of safety boundaries; vendor benchmark claims as local results |
 
 The original root already had selective reading, small verification boundaries,
 offline pinned skills, and honest unavailable-evidence rules. Those are preserved,
 not presented as newly invented. Added mechanisms address review scope/precision
 and evaluation observability. The review document is local guidance rather than
 a seventeenth vendored skill; this preserves the upstream integrity contract.
+
+The Thariq guidance reinforces the same architecture rather than adding another
+mandatory workflow: the root routes to the review reference; the helper exposes
+explicit commands and statuses; the catalog defines observable expectations.
+Host-managed memory is not replaced by appending transient observations to AGENTS.md.
 
 A real review uses tools to select a snapshot and inspect evidence. The review
 instructions cannot enforce file coverage or prevent malicious tool execution by
@@ -41,7 +47,7 @@ the linked default branch later moves.
 - [OpenCodeReview tools](https://github.com/alibaba/open-code-review/blob/f1101fd7f51304c82e4a4f292bbee88aea0823cf/pages/src/content/docs/en/tools.md): commit `f1101fd7f51304c82e4a4f292bbee88aea0823cf`; [project overview](https://github.com/alibaba/open-code-review) also inspected. The supplied repository URL had an extra final Cyrillic character; the existing canonical repository was used.
 - [Evaluating skills](https://developers.openai.com/blog/eval-skills) and [Rethinking skills and prompts](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra): retrieved 2026-09-16; web pages are not immutable source pins.
 - [Codex CLI reference](https://developers.openai.com/codex/cli/reference/) and [non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode): checked for the example's JSONL and sandbox options on the same date. Verify installed-host compatibility when running.
-- [Requested X article](https://x.com/trq212/article/2080710971228918066): full text was not accessible; only a login surface was returned. No unverified contents or claims from that article are attributed or incorporated.
+- [Requested X article](https://x.com/trq212/article/2080710971228918066): direct X text remained inaccessible. Instead, the author's [official Claude blog publication](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models), by Thariq Shihipar, dated 2026-07-24, was inspected on 2026-09-16. Attribution here is to that accessible primary publication, not an unverified X transcript.
 
 Changing this record does not authorize a skill refresh, external installation,
 publication, or additional user workflow. Behavioral evaluation remains NOT RUN
