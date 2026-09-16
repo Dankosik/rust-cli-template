@@ -84,14 +84,15 @@ search. The predeclared toolbox adds `anyhow`, `itertools`, `bstr`, `walkdir`,
 is available in dev-dependencies for ordinary CLI tests. [Cargo.toml](Cargo.toml)
 and [Cargo.lock](Cargo.lock) are the dependency authorities.
 
-Use the [library guide](docs/library-guide.md) before writing a technical helper.
-It maps concrete needs to installed APIs and additional maintained crates, with
-feature and resource tradeoffs. The toolbox is deliberately available before
+Consult the matching [library-guide](docs/library-guide.md) entry when adding
+technical mechanics or choosing a dependency; known project/std APIs do not need
+another full catalog review. It maps needs to APIs and resource tradeoffs. The toolbox is deliberately available before
 the first product command; the sample does not manufacture uses of every crate.
 Chosen default features avoid unrelated WebAssembly progress support, Unicode
 tables for byte-only helpers, and timestamp/message-regex logging features.
 The full [research record](docs/research/2026-09-08-cli-libraries.md) and
-[78-crate catalog](docs/research/library-catalog.md) are kept in the repository.
+[78-crate catalog](docs/research/library-catalog.md) are dated background evidence,
+not a mandatory reading list for ordinary changes.
 
 The release profile uses ordinary optimized Rust with thin LTO and keeps unwind
 semantics. It makes no CPU-native assumptions. Startup, throughput, resident
@@ -133,7 +134,8 @@ or child processes must define the cleanup it needs.
 | `cargo clippy --locked --all-targets -- -D warnings` | Compiler/lint feedback |
 | `cargo build --locked --release` | Build the optimized executable |
 | `make check` | Formatting, Clippy, all-target tests and doctests |
-| `make verify` | `check` plus pinned skills, local links, and maintenance tests |
+| `make template-check` | Pinned skills, local links, and maintenance tests without a Rust build |
+| `make verify` | Combines `check` and `template-check` |
 | `make template-smoke` | Initialize and test a disposable consumer |
 | `make audit` | Advisories, licenses, and sources using cargo-deny |
 
@@ -153,8 +155,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution and validation details.
 
 Ask your coding agent to implement the requested behavior in this repository.
 [AGENTS.md](AGENTS.md) routes it to the relevant Rust skills and actual validation
-commands. Clear tasks proceed directly to code. Larger tasks can record concise
-decisions and split independent work across agents.
+commands. Clear implementation tasks proceed directly to code; review-only tasks
+stay read-only. Larger tasks can record concise decisions and split independent
+work across available agents. [Agent evaluation](docs/agent-evaluation.md) provides
+optional scenarios on this template; it is not a mandatory implementation stage.
 
 [docs/first-command.md](docs/first-command.md) shows where to add or replace a
 subcommand and its tests. Replace the demonstration command, its tests, the
@@ -172,8 +176,13 @@ python3 scripts/sync_skills.py --source ../rust-cli-skills --revision FULL_COMMI
 ```
 
 `--check` returns 1 when an update is available; it writes nothing. Application
-files and locally changed skills are protected from replacement. Review the
-resulting diff and run the relevant checks before committing an update.
+files and locally changed skills are protected from replacement.
+[skills-source.json](.agents/skills-source.json) records the exact upstream revision
+and hashes. Duplicate per-skill license files are omitted only when their bytes
+are already retained in the root LICENSE; other resources or notices need review.
+For an instruction-only update, review the diff and run `make template-check`;
+add Rust/consumer checks when their corresponding inputs change. See
+[agent workflow](docs/agent-workflow.md) for the update and validation boundaries.
 
 ## Release
 

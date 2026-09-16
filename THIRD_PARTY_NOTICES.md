@@ -1,10 +1,12 @@
 # Third-party notices
 
 The vendored Rust skills in `.agents/skills/` originate from
-[Dankosik/rust-cli-skills](https://github.com/Dankosik/rust-cli-skills), commit
-`3ec323b33654173caff2c760b99d70c8923a6576`, copyright (c) 2026 Dankosik,
-under the MIT license reproduced in [LICENSE](LICENSE).
-`.agents/skills-source.json` records their exact content hashes.
+[Dankosik/rust-cli-skills](https://github.com/Dankosik/rust-cli-skills),
+copyright (c) 2026 Dankosik, under the MIT license reproduced in
+[LICENSE](LICENSE). [skills-source.json](.agents/skills-source.json) is the
+single source for their current immutable upstream revision and content hashes.
+Identical per-skill MIT notices are retained by that root license; a notice with
+different content must be preserved explicitly before adopting it.
 
 The template adapts the runnable starting point, initialization, contract,
 validation, and agent-workflow ideas of

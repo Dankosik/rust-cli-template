@@ -132,5 +132,86 @@ class SkillSynchronizationTests(unittest.TestCase):
         self.assertEqual((self.local.read_bytes(), self.manifest.read_bytes()), before)
 
 
+    def licensed_revision(self, notice=b"Fixture license and copyright notice\n"):
+        (self.root / "LICENSE").write_bytes(notice)
+        (self.source / "LICENSE").write_bytes(notice)
+        (self.skill.parent / "LICENSE").write_bytes(notice)
+        return self.next_revision()
+
+    def assert_rejected_without_writes(self, revision, message):
+        before = self.local.read_bytes(), self.manifest.read_bytes()
+        with self.assertRaisesRegex(ValueError, message):
+            self.sync(revision, apply=True)
+        self.assertEqual((self.local.read_bytes(), self.manifest.read_bytes()), before)
+        self.assertEqual((self.root / "application.rs").read_text(), "user code")
+
+    def test_versioned_pack_license_is_retained_without_changing_inventory(self):
+        revision = self.licensed_revision()
+        notice = (self.root / "LICENSE").read_bytes()
+        # Both instructions and notices come from the commit, not dirty files.
+        (self.skill.parent / "LICENSE").write_text("uncommitted source notice")
+        self.skill.write_text("uncommitted source instructions")
+        before = self.local.read_bytes(), self.manifest.read_bytes()
+        self.assertEqual(self.sync(revision), 1)
+        self.assertEqual((self.local.read_bytes(), self.manifest.read_bytes()), before)
+        self.assertEqual(self.sync(revision, apply=True), 0)
+        self.assertEqual(self.local.read_bytes(), self.git("show", revision + ":skills/rust-example/SKILL.md").encode())
+        manifest = json.loads(self.manifest.read_text())
+        self.assertEqual(set(manifest["files"]), {self.relative})
+        self.assertEqual(manifest["files"][self.relative], hashlib.sha256(self.local.read_bytes()).hexdigest())
+        self.assertEqual((self.root / "LICENSE").read_bytes(), notice)
+        self.assertFalse((self.local.parent / "LICENSE").exists())
+        self.assertEqual(self.sync(revision), 0)
+
+    def test_different_license_requires_explicit_preservation(self):
+        self.licensed_revision()
+        (self.skill.parent / "LICENSE").write_text("different upstream notice")
+        self.git("add", ".")
+        self.git("commit", "-qm", "different notice")
+        self.assert_rejected_without_writes(self.git("rev-parse", "HEAD").strip(), "retained LICENSE")
+
+    def test_missing_retained_license_is_not_silently_omitted(self):
+        revision = self.licensed_revision()
+        (self.root / "LICENSE").unlink()
+        self.assert_rejected_without_writes(revision, "retained LICENSE")
+
+    def test_unknown_source_resource_is_still_rejected(self):
+        self.licensed_revision()
+        (self.skill.parent / "run.py").write_text("not an instruction")
+        self.git("add", ".")
+        self.git("commit", "-qm", "unexpected payload")
+        self.assert_rejected_without_writes(self.git("rev-parse", "HEAD").strip(), "unexpected source")
+
+    def test_license_only_directory_is_rejected(self):
+        self.licensed_revision()
+        orphan = self.source / "skills/rust-orphan/LICENSE"
+        orphan.parent.mkdir()
+        orphan.write_bytes((self.root / "LICENSE").read_bytes())
+        self.git("add", ".")
+        self.git("commit", "-qm", "orphan notice")
+        self.assert_rejected_without_writes(self.git("rev-parse", "HEAD").strip(), "no matching")
+
+    def test_source_license_symlink_is_rejected(self):
+        self.licensed_revision()
+        notice = self.skill.parent / "LICENSE"
+        notice.unlink()
+        try:
+            notice.symlink_to("../../LICENSE")
+        except OSError:
+            self.skipTest("creating symlinks is unavailable on this platform")
+        self.git("add", ".")
+        self.git("commit", "-qm", "symlink notice")
+        self.assert_rejected_without_writes(self.git("rev-parse", "HEAD").strip(), "regular file")
+
+    def test_oversized_source_notice_is_rejected(self):
+        revision = self.licensed_revision(b"x" * 1_000_001)
+        self.assert_rejected_without_writes(revision, "too large")
+
+    def test_licensed_pack_does_not_override_local_skill_edits(self):
+        revision = self.licensed_revision()
+        self.local.write_text("local instructions to preserve")
+        self.assert_rejected_without_writes(revision, "refusing to overwrite")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -48,15 +48,17 @@ cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked
 ```
 
-`make verify` additionally checks repository instructions and maintenance tools
-(Python 3.9+). Coding agents start with [AGENTS.md](AGENTS.md) and load the relevant
-vendored Rust skills. [First command](docs/first-command.md) explains how to
+`make template-check` checks instructions, pinned skills, documentation links,
+and maintenance tools (Python 3.9+). `make verify` combines these with the Rust
+checks; equivalent successful checks need not be repeated. Coding agents start
+with [AGENTS.md](AGENTS.md) and load only relevant vendored Rust skills. [First command](docs/first-command.md) explains how to
 replace the example and its release smoke check.
 
 The [library guide](docs/library-guide.md) maps common CLI work to the predeclared
-toolbox and additional crates. Consult it before writing technical helpers;
-the [research record](docs/research/2026-09-08-cli-libraries.md) preserves the basis
-for those choices.
+toolbox and additional crates. Consult the matching entry when adding technical
+mechanics or choosing a dependency; known project/std APIs do not require a full
+catalog review. The [research record](docs/research/2026-09-08-cli-libraries.md)
+preserves dated evidence, not a mandatory reading list.
 
 See [performance](docs/performance.md), [releases](docs/releasing.md),
 [contributing](CONTRIBUTING.md), and [security](SECURITY.md) for their respective
