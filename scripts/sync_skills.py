@@ -34,7 +34,7 @@ def update_file(path, data):
         path.write_bytes(data)
 
 
-def source_files(source, revision):
+def source_files(source, revision, retained_license=None):
     if not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise ValueError("revision must be a full immutable Git commit SHA")
     resolved = git(source, "rev-parse", revision + "^{commit}").decode().strip()
@@ -42,19 +42,33 @@ def source_files(source, revision):
         raise ValueError("revision must identify the commit itself")
     records = git(source, "ls-tree", "-r", revision, "--", "skills").decode().splitlines()
     files = {}
+    licensed = set()
     for record in records:
         metadata, path = record.split("\t", 1)
-        if not re.fullmatch(r"skills/[a-z0-9-]+/SKILL\.md", path):
-            raise ValueError("source is not a standalone SKILL.md-only pack: " + path)
+        match = re.fullmatch(r"skills/([a-z0-9-]+)/(SKILL\.md|LICENSE)", path)
+        if not match:
+            raise ValueError("unexpected source skill file: " + path)
         if metadata.split()[0] not in {"100644", "100755"}:
             raise ValueError("source skill must be a regular file")
         data = git(source, "show", revision + ":" + path)
-        name = path.split("/")[1]
-        if len(data) > 1_000_000 or not data.startswith(("---\nname: " + name + "\n").encode()):
+        name, filename = match.groups()
+        if len(data) > 1_000_000:
+            raise ValueError("source skill file is too large: " + path)
+        if filename == "LICENSE":
+            # Keep the existing SKILL.md-only vendoring contract. Omit a
+            # duplicate notice only when its exact bytes are already retained
+            # in the consumer's root LICENSE; never ignore arbitrary resources.
+            if data != retained_license:
+                raise ValueError("source skill notice differs from retained LICENSE: " + path)
+            licensed.add(name)
+            continue
+        if not data.startswith(("---\nname: " + name + "\n").encode()):
             raise ValueError("unexpected skill structure: " + path)
         files[".agents/" + path] = data
     if not files:
         raise ValueError("source commit contains no skills")
+    if any(".agents/skills/" + name + "/SKILL.md" not in files for name in licensed):
+        raise ValueError("source license has no matching SKILL.md")
     return files
 
 
@@ -74,7 +88,9 @@ def sync(root, source, revision, apply=False):
     origin = re.sub(r"^git@github\.com:", "https://github.com/", origin).removesuffix(".git")
     if origin.lower() != manifest["source"].lower():
         raise ValueError("source repository differs from the pinned pack")
-    files = source_files(source, revision)
+    license_path = safe_path(root, "LICENSE")
+    retained_license = license_path.read_bytes() if license_path.exists() else None
+    files = source_files(source, revision, retained_license)
     for relative in files:
         safe_path(root, relative)
     removed = sorted(set(manifest["files"]) - set(files))
@@ -109,7 +125,7 @@ def sync(root, source, revision, apply=False):
         parent = (root / relative).parent
         if not any(parent.iterdir()):
             parent.rmdir()
-    print("Pinned skills updated. Review the diff and run make verify.")
+    print("Pinned skills updated. Review the diff and run make template-check; add Rust checks when code or build inputs change.")
     return 0
 
 

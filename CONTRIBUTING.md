@@ -6,37 +6,50 @@ version. Remove secrets and personal data from reproductions. For an improvement
 explain the user need and the behavior that would change.
 
 Use the toolchain declared by `rust-toolchain.toml`. Start with the README's
-quickstart and [first-command guide](docs/first-command.md). Contributors using
-coding agents should read [AGENTS.md](AGENTS.md).
+quickstart; consult the [first-command guide](docs/first-command.md) when adding
+or replacing a command. Coding agents follow [AGENTS.md](AGENTS.md).
 
-Keep changes focused and preserve existing CLI contracts unless the change
-explicitly revises them. Prefer the standard library and existing dependencies.
-Consult the matching entry in [the library guide](docs/library-guide.md) before
-writing reusable technical mechanics or adding another crate.
-Include focused regression coverage for changed behavior; exercise the actual
-executable when arguments, streams, status, or effects change. Choose fixtures
-that expose a plausible defect rather than merely repeating the implementation.
+Keep changes focused and preserve existing CLI contracts unless explicitly
+revising them. Reuse the standard library and existing dependencies; the
+predeclared toolbox is intentional. Consult the matching
+[library-guide](docs/library-guide.md) entry for a new technical mechanism or
+dependency decision, not as an exhaustive survey before every edit.
 
-Before opening a code pull request, run the applicable standard checks with
-`make check`:
+Include regression coverage that distinguishes changed behavior from a plausible
+defect. A direct call to the real parser or configuration merge can cover its
+local contract. Exercise the built executable when process wiring, streams,
+status, or post-exit effects change, and real OS mechanisms when their behavior
+is claimed. Preserve meaningful bytes and effects through assertions.
 
-```sh
-make check
-```
+## Choose applicable validation
 
-The [Makefile](Makefile) runs formatting, Clippy, all-target tests, and doctests.
-Those Cargo commands can also be run individually for focused development.
-Use `make verify` when changing template initialization or maintenance scripts;
-it adds the template checks and Python tests. Use `make template-smoke` to
-initialize, build, and test a disposable consumer after identity changes.
-Explain any check you could not run and retain required CI gates.
-Do not broaden a documentation-only edit into an unrelated runtime test campaign.
+| Changed surface | Checks |
+| --- | --- |
+| Rust code or build inputs | Focused checks during implementation; applicable `make check` gates before a code PR |
+| Documentation, instructions, pinned skills, Python maintenance | `make template-check` for integrity, local links, and maintenance tests |
+| Both Rust and template maintenance | `make verify`, which combines `check` and `template-check` |
+| Identity or initialization | Also `make template-smoke`, which initializes and tests a disposable consumer |
+| Dependencies or release packaging | Relevant policy and artifact checks from [releasing](docs/releasing.md), within the authorized scope |
 
-Describe the problem, resulting behavior, and verification in the pull request.
-For performance changes, include a reproducible workload and comparable release
-measurements. Dependency changes should explain the current capability they
-provide and account for feature, license, platform, and maintenance implications.
+The [Makefile](Makefile) defines the actual commands. `make check` runs formatting,
+Clippy, all-target tests, and doctests; each underlying Cargo command can also run
+individually. Reuse equivalent successful results for the same revision and
+environment. Explain checks that could not run, preserve required CI gates, and
+never substitute weaker evidence for the claimed mechanism. Documentation-only
+edits do not require unrelated runtime tests or new infrastructure.
 
-Report suspected vulnerabilities through [SECURITY.md](SECURITY.md) rather than
-public issue details. Contributions are distributed under the repository's
-[MIT license](LICENSE).
+For skill updates, follow the pinned procedure in
+[agent workflow](docs/agent-workflow.md). Preserve source provenance and license
+notices; do not independently fork vendored instructions to change project policy.
+[Behavioral evaluation](docs/agent-evaluation.md) distinguishes instruction quality
+from structural validity and contains scenarios on this template, not claimed
+model results.
+
+Describe the problem, resulting behavior, and actual verification in the PR.
+For measured performance claims, include the workload and comparable release
+measurements. Dependency changes should explain the needed capability and relevant
+feature, license, platform, and maintenance implications. Neither a green PR nor
+available credentials authorize release publication.
+
+Report suspected vulnerabilities through [SECURITY.md](SECURITY.md), not public
+issue details. Contributions use the repository's [MIT license](LICENSE).

@@ -13,10 +13,12 @@ The repository adapts the readiness and ownership ideas in
 In particular, its README, initializer, agent instructions, first-feature guide,
 and CI/release workflows informed this design.
 
-The reusable engineering methods come from
+The initial reusable engineering methods came from
 [rust-cli-skills at 3ec323b](https://github.com/Dankosik/rust-cli-skills/tree/3ec323b33654173caff2c760b99d70c8923a6576).
-All 16 skills are vendored under `.agents/skills/`; the recorded upstream
-revision makes their origin explicit and their updates reviewable. Both source
+All 16 skills are vendored under `.agents/skills/`;
+[skills-source.json](../.agents/skills-source.json) records the current upstream
+revision and hashes after deliberate updates. The initial source above is a
+historical design reference, not a second current version pin. Both source
 repositories use the MIT license. Keep applicable license notices when copying
 or redistributing their content.
 
